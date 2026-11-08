@@ -217,8 +217,9 @@ void draw_gamezone(game_status stat, int width, int height, char * info) {
         DrawText("UP to rotate", width * 0.55, height * 0.85, 45, BLACK);
         DrawText("ESC to quit", width * 0.55, height * 0.90, 45, BLACK);
     } else {
-        DrawText(":(", width * 0.10, height * 0.30, 65, BLACK);
-        DrawText(info, width * 0.10, height * 0.50, 45, BLACK);
+        DrawText(":(", width * 0.10, height * 0.30, 75, BLACK);
+        DrawText(info, width * 0.10, height * 0.50, 50, BLACK);
+        DrawText("Press SPACE to continue\nESC to quit.", width * 0.10, height * 0.70, 40, BLACK);
     }
 }
 
@@ -499,14 +500,18 @@ int main() {
 
         if (gameboard && gameboard[4][2].b == '#' &&
             gameboard[4][2].status == FREEZE) {
-
+            snprintf(gaming_info, sizeof(gaming_info),
+                     "GAME OVER!\nScore: %d\n", score);
             for (int x = 0; x < BLOCK_COUNT_X; x++) {
                 free(gameboard[x]);
                 gameboard[x] = NULL;
             }
             free(gameboard);
             gameboard = NULL;
-            printf("game over!\n");
+            score = 0;
+            cleared_lines = 0;
+            level = 0;
+            level_up_ = 0;
         }
         if (gameboard) {
             if (!shape) {
@@ -561,10 +566,10 @@ int main() {
             EndDrawing();
         } else {
             // for (;;) {
+
             BeginDrawing();
             ClearBackground(BG_COLOR);
-            draw_gamezone(GAMEOVER, window_width, window_height,
-                          "GAME OVER\n\nPress SPACE to continue\nESC to quit.");
+            draw_gamezone(GAMEOVER, window_width, window_height, gaming_info);
             if (IsKeyDown(KEY_SPACE)) {
                 gameboard = init_board();
             } else if (IsKeyDown(KEY_ESCAPE)) {
