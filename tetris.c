@@ -210,16 +210,14 @@ void draw_gamezone(game_status stat, int width, int height, char * info) {
                             BLOCK_MARGIN * 2},
             5, BLACK);
         DrawText(info, width * 0.60, height * 0.10, 65, BLACK);
-        DrawText("Hold DOWN to\nspeed up", width * 0.55, height * 0.65, 45,
-                 BLACK);
-        DrawText("LEFT/RIGHT\nto control", width * 0.55, height * 0.75, 45,
-                 BLACK);
-        DrawText("UP to rotate", width * 0.55, height * 0.85, 45, BLACK);
-        DrawText("ESC to quit", width * 0.55, height * 0.90, 45, BLACK);
+        DrawText("Hold DOWN to\nspeed up\nLEFT/RIGHT\nto control\nUP to "
+                 "rotate\nESC to quit",
+                 width * 0.60, height * 0.65, 45, BLACK);
     } else {
         DrawText(":(", width * 0.10, height * 0.30, 75, BLACK);
         DrawText(info, width * 0.10, height * 0.50, 50, BLACK);
-        DrawText("Press SPACE to continue\nESC to quit.", width * 0.10, height * 0.70, 40, BLACK);
+        DrawText("Press SPACE to continue\nESC to quit.", width * 0.10,
+                 height * 0.70, 40, BLACK);
     }
 }
 
