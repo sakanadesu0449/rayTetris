@@ -1,3 +1,5 @@
+// Author: sakanadesu0449
+
 #include <math.h>
 #include <raylib.h>
 #include <stdio.h>
@@ -7,11 +9,11 @@
 
 #define BG_COLOR (Color){100, 100, 100, 255}
 
-#define WINDOW_X 1500
-#define WINDOW_Y 1600
+#define WINDOW_X 1000
+#define WINDOW_Y 1080
 #define BLOCK_COUNT_X 10
 #define BLOCK_COUNT_Y 22
-#define BLOCK_LENGTH 64
+#define BLOCK_LENGTH 40
 #define BLOCK_MARGIN 4
 
 #define SHAPE_DATA_BUDR(__name, __color, __rotation, ...)                      \
@@ -199,10 +201,13 @@ void draw_gamezone(int width, int height, char * score, char * lines,
                         BLOCK_MARGIN * 2},
         5, BLACK);
     int diagonal_length = sqrt(width * width + height * height);
-    DrawText(score, width * 0.65, height * 0.1, 70, BLACK);
-    DrawText(level, width * 0.65, height * 0.15, 70, BLACK);
-    DrawText(lines, width * 0.65, height * 0.20, 70, BLACK);
-    DrawText("ESC to quit", width * 0.65, height * 0.90, 70, BLACK);
+    DrawText(score, width * 0.60, height * 0.10, 65, BLACK);
+    DrawText(level, width * 0.65, height * 0.25, 50, BLACK);
+    DrawText(lines, width * 0.65, height * 0.30, 50, BLACK);
+    DrawText("Hold DOWN to\nspeed up", width * 0.55, height * 0.65, 45, BLACK);
+    DrawText("LEFT/RIGHT\nto control", width * 0.55, height * 0.75, 45, BLACK);
+    DrawText("UP to rotate", width * 0.55, height * 0.85, 45, BLACK);
+    DrawText("ESC to quit", width * 0.55, height * 0.90, 45, BLACK);
 }
 
 void draw_blocks(block ** board,
@@ -485,13 +490,13 @@ int main() {
         if (op_inv == 0) {
             if (CHECK_OPT(KEY_UP)) {
                 result = update_board(gameboard, shape, UP);
-                op_inv = 8;
+                op_inv = 10;
             } else if (CHECK_OPT(KEY_LEFT)) {
                 result = update_board(gameboard, shape, LEFT);
-                op_inv = 4;
+                op_inv = 6;
             } else if (CHECK_OPT(KEY_RIGHT)) {
                 result = update_board(gameboard, shape, RIGHT);
-                op_inv = 4;
+                op_inv = 6;
             }
         }
 
@@ -501,7 +506,7 @@ int main() {
         }
         if (CHECK_OPT(KEY_DOWN)) {
             result = update_board(gameboard, shape, DOWN);
-            igt = 4;
+            igt = 8;
         }
         if (result == 1) {
             FREE_SHAPE(shape);
