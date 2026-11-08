@@ -44,6 +44,7 @@
         for (int _i = 0; _i < 4; _i++) {                                       \
             block * _block = OFFSET_TO_BOARD(_i, (_board), (_s), (_x), (_y));  \
             _block->b = (_v);                                                  \
+            _block->color = (_s)->color;                                       \
             _block->status = (_stat);                                          \
         }                                                                      \
     } while (0)
@@ -113,20 +114,20 @@ typedef struct {
 
 // shapes' initial state
 static const moving_shape new_shapes[7] = {
-    DEFAULT_SHAPE_DATA(ORANGE_RICKY, RED, {1, -1}, {1, 0}, {-1, 0}),
+    DEFAULT_SHAPE_DATA(ORANGE_RICKY, MAROON, {1, -1}, {1, 0}, {-1, 0}),
     DEFAULT_SHAPE_DATA(BLUE_RICKY, ORANGE, {1, 0}, {-1, 0}, {-1, -1}),
-    DEFAULT_SHAPE_DATA(CLEVELAND_Z, BLUE, {1, 1}, {0, 1}, {-1, 0}),
-    DEFAULT_SHAPE_DATA(RHODE_ISLAND_Z, BLUE, {1, -1}, {-1, 0}, {0, -1}),
-    DEFAULT_SHAPE_DATA(HERO, GREEN, {1, 0}, {2, 0}, {-1, 0}),
-    DEFAULT_SHAPE_DATA(TEEWEE, DARKBLUE, {1, 0}, {-1, 0}, {0, -1}),
-    DEFAULT_SHAPE_DATA(SMASHBOY, YELLOW, {0, -1}, {-1, 0}, {-1, -1})};
+    DEFAULT_SHAPE_DATA(CLEVELAND_Z, DARKBLUE, {1, 1}, {0, 1}, {-1, 0}),
+    DEFAULT_SHAPE_DATA(RHODE_ISLAND_Z, DARKBLUE, {1, -1}, {-1, 0}, {0, -1}),
+    DEFAULT_SHAPE_DATA(HERO, LIME, {1, 0}, {2, 0}, {-1, 0}),
+    DEFAULT_SHAPE_DATA(TEEWEE, DARKPURPLE, {1, 0}, {-1, 0}, {0, -1}),
+    DEFAULT_SHAPE_DATA(SMASHBOY, DARKBROWN, {0, -1}, {-1, 0}, {-1, -1})};
 
 static const moving_shape shape_rotations[7][4] = {
     // ORANGE_RICKY
     {new_shapes[0],
-     SHAPE_DATA_BUDR(ORANGE_RICKY, RED, BETA, {1, 1}, {0, 1}, {0, -1}),
-     SHAPE_DATA_BUDR(ORANGE_RICKY, RED, GAMMA, {1, 0}, {-1, 1}, {-1, 0}),
-     SHAPE_DATA_BUDR(ORANGE_RICKY, RED, DELTA, {0, 1}, {-1, -1}, {0, -1})},
+     SHAPE_DATA_BUDR(ORANGE_RICKY, MAROON, BETA, {1, 1}, {0, 1}, {0, -1}),
+     SHAPE_DATA_BUDR(ORANGE_RICKY, MAROON, GAMMA, {1, 0}, {-1, 1}, {-1, 0}),
+     SHAPE_DATA_BUDR(ORANGE_RICKY, MAROON, DELTA, {0, 1}, {-1, -1}, {0, -1})},
     // BLUE_RICKY
     {new_shapes[1],
      SHAPE_DATA_BUDR(BLUE_RICKY, ORANGE, BETA, {0, -1}, {1, -1}, {0, 1}),
@@ -134,28 +135,28 @@ static const moving_shape shape_rotations[7][4] = {
      SHAPE_DATA_BUDR(BLUE_RICKY, ORANGE, DELTA, {0, 1}, {-1, 1}, {0, -1})},
     // CLEVELAND_Z
     {new_shapes[2],
-     SHAPE_DATA_BUDR(CLEVELAND_Z, BLUE, BETA, {0, -1}, {-1, 1}, {-1, 0}),
-     SHAPE_DATA_BUDR(CLEVELAND_Z, BLUE, GAMMA, {1, 1}, {0, 1}, {-1, 0}),
-     SHAPE_DATA_BUDR(CLEVELAND_Z, BLUE, DELTA, {0, -1}, {-1, 1}, {-1, 0})},
+     SHAPE_DATA_BUDR(CLEVELAND_Z, DARKBLUE, BETA, {0, -1}, {-1, 1}, {-1, 0}),
+     SHAPE_DATA_BUDR(CLEVELAND_Z, DARKBLUE, GAMMA, {1, 1}, {0, 1}, {-1, 0}),
+     SHAPE_DATA_BUDR(CLEVELAND_Z, DARKBLUE, DELTA, {0, -1}, {-1, 1}, {-1, 0})},
     // RHODE_ISLAND_Z
     {new_shapes[3],
-     SHAPE_DATA_BUDR(RHODE_ISLAND_Z, BLUE, BETA, {0, 1}, {-1, 0}, {-1, -1}),
-     SHAPE_DATA_BUDR(RHODE_ISLAND_Z, BLUE, GAMMA, {1, -1}, {-1, 0}, {0, -1}),
-     SHAPE_DATA_BUDR(RHODE_ISLAND_Z, BLUE, DELTA, {0, 1}, {-1, 0}, {-1, -1})},
+     SHAPE_DATA_BUDR(RHODE_ISLAND_Z, DARKBLUE, BETA, {0, 1}, {-1, 0}, {-1, -1}),
+     SHAPE_DATA_BUDR(RHODE_ISLAND_Z, DARKBLUE, GAMMA, {1, -1}, {-1, 0}, {0, -1}),
+     SHAPE_DATA_BUDR(RHODE_ISLAND_Z, DARKBLUE, DELTA, {0, 1}, {-1, 0}, {-1, -1})},
     // HERO
-    {new_shapes[4], SHAPE_DATA_BUDR(HERO, GREEN, BETA, {0, -1}, {0, 1}, {0, 2}),
-     SHAPE_DATA_BUDR(HERO, GREEN, GAMMA, {1, 0}, {2, 0}, {-1, 0}),
-     SHAPE_DATA_BUDR(HERO, GREEN, DELTA, {0, -1}, {0, 1}, {0, 2})},
+    {new_shapes[4], SHAPE_DATA_BUDR(HERO, LIME, BETA, {0, -1}, {0, 1}, {0, 2}),
+     SHAPE_DATA_BUDR(HERO, LIME, GAMMA, {1, 0}, {2, 0}, {-1, 0}),
+     SHAPE_DATA_BUDR(HERO, LIME, DELTA, {0, -1}, {0, 1}, {0, 2})},
     // TEEWEE
     {new_shapes[5],
-     SHAPE_DATA_BUDR(TEEWEE, DARKBLUE, BETA, {0, -1}, {1, 0}, {0, 1}),
-     SHAPE_DATA_BUDR(TEEWEE, DARKBLUE, GAMMA, {1, 0}, {0, 1}, {-1, 0}),
-     SHAPE_DATA_BUDR(TEEWEE, DARKBLUE, DELTA, {0, -1}, {0, 1}, {-1, 0})},
+     SHAPE_DATA_BUDR(TEEWEE, DARKPURPLE, BETA, {0, -1}, {1, 0}, {0, 1}),
+     SHAPE_DATA_BUDR(TEEWEE, DARKPURPLE, GAMMA, {1, 0}, {0, 1}, {-1, 0}),
+     SHAPE_DATA_BUDR(TEEWEE, DARKPURPLE, DELTA, {0, -1}, {0, 1}, {-1, 0})},
     // SMASHBOY
     {new_shapes[6],
-     SHAPE_DATA_BUDR(SMASHBOY, YELLOW, BETA, {0, -1}, {-1, 0}, {-1, -1}),
-     SHAPE_DATA_BUDR(SMASHBOY, YELLOW, GAMMA, {0, -1}, {-1, 0}, {-1, -1}),
-     SHAPE_DATA_BUDR(SMASHBOY, YELLOW, DELTA, {0, -1}, {-1, 0}, {-1, -1})}};
+     SHAPE_DATA_BUDR(SMASHBOY, DARKBROWN, BETA, {0, -1}, {-1, 0}, {-1, -1}),
+     SHAPE_DATA_BUDR(SMASHBOY, DARKBROWN, GAMMA, {0, -1}, {-1, 0}, {-1, -1}),
+     SHAPE_DATA_BUDR(SMASHBOY, DARKBROWN, DELTA, {0, -1}, {-1, 0}, {-1, -1})}};
 
 static const int levels_ft[10] = {39, 36, 33, 30, 27, 24, 21, 18, 15, 12};
 
@@ -196,7 +197,7 @@ void draw_gamezone(int width, int height, char * score, char * lines,
                         BLOCK_MARGIN * 2,
                     (BLOCK_COUNT_Y - 2) * (BLOCK_LENGTH + BLOCK_MARGIN * 2) +
                         BLOCK_MARGIN * 2},
-        2, BLACK);
+        5, BLACK);
     int diagonal_length = sqrt(width * width + height * height);
     DrawText(score, width * 0.65, height * 0.1, 70, BLACK);
     DrawText(level, width * 0.65, height * 0.15, 70, BLACK);
@@ -210,7 +211,9 @@ void draw_blocks(block ** board,
         for (int y = 2; y < BLOCK_COUNT_Y; y++) {
             if (board[x][y].b == '#') {
                 DrawRectangle(blocks_pos[x][y][0], blocks_pos[x][y][1], length,
-                              length, BLACK);
+                              length, board[x][y].color);
+                DrawRectangleLinesEx((Rectangle){blocks_pos[x][y][0], blocks_pos[x][y][1], length,
+                              length}, 3, BLACK);
             } else {
                 continue;
             }
@@ -393,7 +396,7 @@ void clear_line(block ** board, full_line line) {
         }
         l++;
     }
-    printf("INFO: %d lines cleared\n", line.line_count);
+    printf("INFO: %d lines cleaerd\n", line.line_count);
 }
 
 block ** init_board() {
@@ -431,7 +434,7 @@ int main() {
     ingame_time igt = 0;        // ingame timer
     level level = 0;
     const float frametime = 0.0167f;
-    int cleared_lines = 0;
+    int cleaMAROON_lines = 0;
     int level_up_ = 10;
 
     // blocks pos init
@@ -453,9 +456,9 @@ int main() {
     ingame_time op_inv = 0;
     int score = 0;
 
-    printf("\n\n=============================\n");
+    printf("=============================\n");
     printf("     welcome to Tetris!\n");
-    printf("=============================\n\n");
+    printf("=============================\n");
 
     //
     //
@@ -477,7 +480,6 @@ int main() {
             // printf("generating a new shape!\n");
             shape = malloc(sizeof(moving_shape));
             shape = add_new_shape();
-
         }
         int result = 0;
         if (op_inv == 0) {
@@ -506,7 +508,7 @@ int main() {
             full_line line = check_full_line(gameboard);
             if (line.line_count > 0) {
                 clear_line(gameboard, line);
-                cleared_lines += line.line_count;
+                cleaMAROON_lines += line.line_count;
                 score += line.line_count * 100;
                 if (level < 9 && level_up_ == 10) {
                     level++;
@@ -520,15 +522,15 @@ int main() {
         ClearBackground(BG_COLOR);
         snprintf(score_info, sizeof(score_info), "SCORE: %d", score);
         snprintf(level_info, sizeof(level_info), "LEVEL: %d", level);
-        snprintf(lines_info, sizeof(lines_info), "LINES: %d", cleared_lines);
+        snprintf(lines_info, sizeof(lines_info), "LINES: %d", cleaMAROON_lines);
         draw_gamezone(window_width, window_height, score_info, lines_info,
                       level_info);
         draw_blocks(gameboard, blocks_pos, BLOCK_LENGTH);
         EndDrawing();
     }
-    printf("=============================\n\n");
-    printf("quit game...\n\n");
-    printf("=============================\n\n");
+    printf("=============================\n");
+    printf("     quit game...\n");
+    printf("=============================\n");
     CloseWindow();
 
     return 0;
