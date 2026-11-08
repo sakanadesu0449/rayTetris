@@ -1,11 +1,13 @@
 // Author: sakanadesu0449
 
+#include <corecrt.h>
 #include <math.h>
 #include <raylib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #define BG_COLOR (Color){100, 100, 100, 255}
 
@@ -57,6 +59,11 @@ typedef enum {
     ACTIVE,
     FREEZE,
 } block_status;
+
+typedef enum {
+    GAMING,
+    GAMEOVER,
+} game_status;
 
 typedef enum {
     UP,
@@ -143,8 +150,10 @@ static const moving_shape shape_rotations[7][4] = {
     // RHODE_ISLAND_Z
     {new_shapes[3],
      SHAPE_DATA_BUDR(RHODE_ISLAND_Z, DARKBLUE, BETA, {0, 1}, {-1, 0}, {-1, -1}),
-     SHAPE_DATA_BUDR(RHODE_ISLAND_Z, DARKBLUE, GAMMA, {1, -1}, {-1, 0}, {0, -1}),
-     SHAPE_DATA_BUDR(RHODE_ISLAND_Z, DARKBLUE, DELTA, {0, 1}, {-1, 0}, {-1, -1})},
+     SHAPE_DATA_BUDR(RHODE_ISLAND_Z, DARKBLUE, GAMMA, {1, -1}, {-1, 0},
+                     {0, -1}),
+     SHAPE_DATA_BUDR(RHODE_ISLAND_Z, DARKBLUE, DELTA, {0, 1}, {-1, 0},
+                     {-1, -1})},
     // HERO
     {new_shapes[4], SHAPE_DATA_BUDR(HERO, LIME, BETA, {0, -1}, {0, 1}, {0, 2}),
      SHAPE_DATA_BUDR(HERO, LIME, GAMMA, {1, 0}, {2, 0}, {-1, 0}),
@@ -175,8 +184,7 @@ typedef struct {
 } full_line;
 
 // declarations
-void draw_gamezone(int width, int height, char * score, char * lines,
-                   char * level);
+void draw_gamezone(game_status stat, int width, int height, char * info);
 void draw_blocks(block ** board,
                  int blocks_pos[BLOCK_COUNT_X][BLOCK_COUNT_Y][2], int length);
 int update_board(block ** board, moving_shape * shape, movement move);
@@ -191,23 +199,27 @@ block ** init_board();
 
 //
 // definitions
-void draw_gamezone(int width, int height, char * score, char * lines,
-                   char * level) {
-    DrawRectangleLinesEx(
-        (Rectangle){WINDOW_X * 0.05, WINDOW_Y * 0.05,
-                    BLOCK_COUNT_X * (BLOCK_LENGTH + BLOCK_MARGIN * 2) +
-                        BLOCK_MARGIN * 2,
-                    (BLOCK_COUNT_Y - 2) * (BLOCK_LENGTH + BLOCK_MARGIN * 2) +
-                        BLOCK_MARGIN * 2},
-        5, BLACK);
-    int diagonal_length = sqrt(width * width + height * height);
-    DrawText(score, width * 0.60, height * 0.10, 65, BLACK);
-    DrawText(level, width * 0.65, height * 0.25, 50, BLACK);
-    DrawText(lines, width * 0.65, height * 0.30, 50, BLACK);
-    DrawText("Hold DOWN to\nspeed up", width * 0.55, height * 0.65, 45, BLACK);
-    DrawText("LEFT/RIGHT\nto control", width * 0.55, height * 0.75, 45, BLACK);
-    DrawText("UP to rotate", width * 0.55, height * 0.85, 45, BLACK);
-    DrawText("ESC to quit", width * 0.55, height * 0.90, 45, BLACK);
+void draw_gamezone(game_status stat, int width, int height, char * info) {
+    if (stat == GAMING) {
+        DrawRectangleLinesEx(
+            (Rectangle){WINDOW_X * 0.05, WINDOW_Y * 0.05,
+                        BLOCK_COUNT_X * (BLOCK_LENGTH + BLOCK_MARGIN * 2) +
+                            BLOCK_MARGIN * 2,
+                        (BLOCK_COUNT_Y - 2) *
+                                (BLOCK_LENGTH + BLOCK_MARGIN * 2) +
+                            BLOCK_MARGIN * 2},
+            5, BLACK);
+        DrawText(info, width * 0.60, height * 0.10, 65, BLACK);
+        DrawText("Hold DOWN to\nspeed up", width * 0.55, height * 0.65, 45,
+                 BLACK);
+        DrawText("LEFT/RIGHT\nto control", width * 0.55, height * 0.75, 45,
+                 BLACK);
+        DrawText("UP to rotate", width * 0.55, height * 0.85, 45, BLACK);
+        DrawText("ESC to quit", width * 0.55, height * 0.90, 45, BLACK);
+    } else {
+        DrawText(":(", width * 0.10, height * 0.30, 65, BLACK);
+        DrawText(info, width * 0.10, height * 0.50, 45, BLACK);
+    }
 }
 
 void draw_blocks(block ** board,
@@ -217,8 +229,10 @@ void draw_blocks(block ** board,
             if (board[x][y].b == '#') {
                 DrawRectangle(blocks_pos[x][y][0], blocks_pos[x][y][1], length,
                               length, board[x][y].color);
-                DrawRectangleLinesEx((Rectangle){blocks_pos[x][y][0], blocks_pos[x][y][1], length,
-                              length}, 3, BLACK);
+                DrawRectangleLinesEx((Rectangle){blocks_pos[x][y][0],
+                                                 blocks_pos[x][y][1], length,
+                                                 length},
+                                     3, BLACK);
             } else {
                 continue;
             }
@@ -405,13 +419,14 @@ void clear_line(block ** board, full_line line) {
 }
 
 block ** init_board() {
-    block ** board = malloc(BLOCK_COUNT_Y * sizeof(block *));
+    block ** board = malloc(BLOCK_COUNT_X * sizeof(block *));
     for (int x = 0; x < BLOCK_COUNT_X; x++) {
         board[x] = malloc(BLOCK_COUNT_Y * sizeof(block));
         for (int y = 0; y < BLOCK_COUNT_Y; y++) {
+            board[x][y] = (block){};
             board[x][y].b = '-';
+            board[x][y].status = ACTIVE;
         }
-        // printf("\n");
     }
     return board;
 }
@@ -431,6 +446,7 @@ int main() {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(WINDOW_X, WINDOW_Y, "rayTetris");
     SetTargetFPS(60);
+    char gaming_info[128];
     char size_info[64];
     char score_info[32];
     char level_info[32];
@@ -439,7 +455,7 @@ int main() {
     ingame_time igt = 0;        // ingame timer
     level level = 0;
     const float frametime = 0.0167f;
-    int cleaMAROON_lines = 0;
+    int cleared_lines = 0;
     int level_up_ = 10;
 
     // blocks pos init
@@ -481,62 +497,86 @@ int main() {
                  window_height);
         SetWindowTitle(size_info);
 
-        if (!shape) {
-            // printf("generating a new shape!\n");
-            shape = malloc(sizeof(moving_shape));
-            shape = add_new_shape();
-        }
-        int result = 0;
-        if (op_inv == 0) {
-            if (CHECK_OPT(KEY_UP)) {
-                result = update_board(gameboard, shape, UP);
-                op_inv = 10;
-            } else if (CHECK_OPT(KEY_LEFT)) {
-                result = update_board(gameboard, shape, LEFT);
-                op_inv = 6;
-            } else if (CHECK_OPT(KEY_RIGHT)) {
-                result = update_board(gameboard, shape, RIGHT);
-                op_inv = 6;
-            }
-        }
+        if (gameboard && gameboard[4][2].b == '#' &&
+            gameboard[4][2].status == FREEZE) {
 
-        if (igt == 0) {
-            result = update_board(gameboard, shape, DOWN);
-            igt = levels_ft[level];
+            for (int x = 0; x < BLOCK_COUNT_X; x++) {
+                free(gameboard[x]);
+                gameboard[x] = NULL;
+            }
+            free(gameboard);
+            gameboard = NULL;
+            printf("game over!\n");
         }
-        if (CHECK_OPT(KEY_DOWN)) {
-            result = update_board(gameboard, shape, DOWN);
-            igt = 8;
-        }
-        if (result == 1) {
-            FREE_SHAPE(shape);
-            full_line line = check_full_line(gameboard);
-            if (line.line_count > 0) {
-                clear_line(gameboard, line);
-                cleaMAROON_lines += line.line_count;
-                score += line.line_count * 100;
-                if (level < 9 && level_up_ == 10) {
-                    level++;
-                    level_up_ = 0;
+        if (gameboard) {
+            if (!shape) {
+                // printf("generating a new shape!\n");
+                shape = malloc(sizeof(moving_shape));
+                shape = add_new_shape();
+            }
+            int result = 0;
+            if (op_inv == 0) {
+                if (CHECK_OPT(KEY_UP)) {
+                    result = update_board(gameboard, shape, UP);
+                    op_inv = 10;
+                } else if (CHECK_OPT(KEY_LEFT)) {
+                    result = update_board(gameboard, shape, LEFT);
+                    op_inv = 6;
+                } else if (CHECK_OPT(KEY_RIGHT)) {
+                    result = update_board(gameboard, shape, RIGHT);
+                    op_inv = 6;
                 }
-                level_up_++;
             }
-        }
 
-        BeginDrawing();
-        ClearBackground(BG_COLOR);
-        snprintf(score_info, sizeof(score_info), "SCORE: %d", score);
-        snprintf(level_info, sizeof(level_info), "LEVEL: %d", level);
-        snprintf(lines_info, sizeof(lines_info), "LINES: %d", cleaMAROON_lines);
-        draw_gamezone(window_width, window_height, score_info, lines_info,
-                      level_info);
-        draw_blocks(gameboard, blocks_pos, BLOCK_LENGTH);
-        EndDrawing();
+            if (igt == 0) {
+                result = update_board(gameboard, shape, DOWN);
+                igt = levels_ft[level];
+            }
+            if (CHECK_OPT(KEY_DOWN)) {
+                result = update_board(gameboard, shape, DOWN);
+                igt = 8;
+            }
+            if (result == 1) {
+                FREE_SHAPE(shape);
+                full_line line = check_full_line(gameboard);
+                if (line.line_count > 0) {
+                    clear_line(gameboard, line);
+                    cleared_lines += line.line_count;
+                    score += line.line_count * 100;
+                    if (level < 9 && level_up_ == 10) {
+                        level++;
+                        level_up_ = 0;
+                    }
+                    level_up_++;
+                }
+            }
+
+            BeginDrawing();
+            ClearBackground(BG_COLOR);
+            snprintf(gaming_info, sizeof(gaming_info),
+                     "Score: %d\n\nLevel: %d\nLines: %d\n", score, level,
+                     cleared_lines);
+            draw_gamezone(GAMING, window_width, window_height, gaming_info);
+            draw_blocks(gameboard, blocks_pos, BLOCK_LENGTH);
+            EndDrawing();
+        } else {
+            // for (;;) {
+            BeginDrawing();
+            ClearBackground(BG_COLOR);
+            draw_gamezone(GAMEOVER, window_width, window_height,
+                          "GAME OVER\n\nPress SPACE to continue\nESC to quit.");
+            if (IsKeyDown(KEY_SPACE)) {
+                gameboard = init_board();
+            } else if (IsKeyDown(KEY_ESCAPE)) {
+                break;
+            }
+            EndDrawing();
+        }
     }
+
+    CloseWindow();
     printf("=============================\n");
     printf("     quit game...\n");
     printf("=============================\n");
-    CloseWindow();
-
     return 0;
 }
